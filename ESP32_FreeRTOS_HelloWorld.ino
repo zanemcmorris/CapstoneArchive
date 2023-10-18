@@ -7,7 +7,7 @@
 
 #include "helloworld.h"
 
-
+// Standard GPIO Pin definitions
 #define LED_OUT_3 A3
 #define LED_OUT_2 A2
 #define LED_OUT_1 A1
@@ -23,10 +23,11 @@ int16_t co2PPM;
 Error_t co2Error;
 Adafruit_BMP3XX bmp;
 SensirionI2CSen5x sen5x;
+// Preferences object creation
+Preferences preferences;
 
 
-
-void setup_GPIO() {
+void setupGPIO() {
   // Setup I2C
   // Wire.begin(); // For breadboard QT-PY ESP32
   Serial.println("Setting up GPIO...");
@@ -37,6 +38,13 @@ void setup_GPIO() {
   // setupBMPSensor();
   setupSENSensor();
   Serial.println("Successfully set up GPIO.");
+}
+
+void setupPreferences()
+{
+  // Preferences is good for single KVP storage.
+  // We want to use SPIFF for large storage
+  bool status = preferences.begin("my_app", false);
 }
 
 void read_all_sensors(float *ret_array, uint16_t array_size) {
@@ -233,7 +241,8 @@ void loop() {}
 void setup() {
   Serial.begin(115200);
   Serial.write("Setting up...");
-  setup_GPIO();
+  setupGPIO();
+  setupPreferences();
 
   // pinMode(LED_PIN_0, OUTPUT);
 

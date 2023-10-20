@@ -9,15 +9,12 @@
 
 
 // Task handle definitions
-TaskHandle_t hello_task_handle;
-TaskHandle_t blink_task_handle;
-TaskHandle_t blink_task_handle1;
-
+TaskHandle_t sensor_read_task_handle;
+TaskHandle_t spiffs_storage_task_handle;
 // Preferences object creation
 Preferences preferences;
 
-void setupPreferences()
-{
+void setupPreferences() {
   // Preferences is good for single KVP storage.
   // We want to use SPIFF for large storage
   bool status = preferences.begin("my_app", false);
@@ -32,17 +29,23 @@ void setup() {
 
   // pinMode(LED_PIN_0, OUTPUT);
 
-  xTaskCreatePinnedToCore(hello_task,            /*Function to call*/
-                          "hello_task",          /*Task name*/
-                          10000,                 /*Stack size*/
-                          NULL,                  /*Function parameters*/
-                          1,                     /*Priority*/
-                          &hello_task_handle,    /*ptr to global TaskHandle_t*/
-                          ARDUINO_PRIMARY_CORE); /*Core ID*/
-  // xTaskCreatePinnedToCore(blinky, "blink_task_handle", 10000, NULL, 1, &blink_task_handle, 1);
-  // xTaskCreatePinnedToCore(blink1, "blink1_task_handle", 10000, NULL, 1, &blink_task_handle1, 1);
+  xTaskCreatePinnedToCore(sensor_read_task,         /*Function to call*/
+                          "sensor_read_task",       /*Task name*/
+                          10000,                    /*Stack size*/
+                          NULL,                     /*Function parameters*/
+                          1,                        /*Priority*/
+                          &sensor_read_task_handle, /*ptr to global TaskHandle_t*/
+                          ARDUINO_PRIMARY_CORE);    /*Core ID*/
 }
-void hello_task(void *pvParameter) {
+xTaskCreatePinnedToCore(sensor_read_task,         /*Function to call*/
+                        "sensor_read_task",       /*Task name*/
+                        10000,                    /*Stack size*/
+                        NULL,                     /*Function parameters*/
+                        1,                        /*Priority*/
+                        &sensor_read_task_handle, /*ptr to global TaskHandle_t*/
+                        ARDUINO_PRIMARY_CORE);    /*Core ID*/
+}
+void sensor_read_task(void *pvParameter) {
   uint16_t arraySize = 11;
   float dataArray[arraySize];
   uint16_t taskIteration = 0;
@@ -51,38 +54,10 @@ void hello_task(void *pvParameter) {
     Serial.print(taskIteration++);
     Serial.println();
     taskIteration %= arraySize;
-    // dataArray[0] = readCO2PPM(co2Error, co2Sensor);
     read_all_sensors(&dataArray[0], arraySize);
-    for(int i=0;i<arraySize;i++)
+    for (int i = 0; i < arraySize; i++)
       Serial.println(dataArray[i]);
-    
-    vTaskDelay(5000 / portTICK_RATE_MS);
-  }
-}
-void blinky(void *pvParameter) {
-  // pinMode(LED_OUT_3, OUTPUT);
-  int count = 0;
-  while (1) {
-    /* Blink off (output low) */
-    count++;
-    if (count >= 255) {
-      count = 0;
-    }
-    // analogWrite(LED_OUT_3, count);
-    vTaskDelay(10);
-  }
-}
 
-void blink1(void *pvParameter) {
-  // pinMode(LED_OUT_2, OUTPUT);
-  int count = 0;
-  while (1) {
-    /* Blink off (output low) */
-    count++;
-    if (count >= 255) {
-      count = 0;
-    }
-    // analogWrite(LED_OUT_2, count);
-    vTaskDelay(15);
+    vTaskDelay(5000 / portTICK_RATE_MS);
   }
 }
